@@ -4,4 +4,6 @@ The files that will be deployed are `contracts/BLOCToken.sol` and `contracts/BLO
 
 ABI files are provided for anyone who wishes to interface with the contract.
 
-Any vulnerabilities or bugs can be responsibly disclosed by opening an issue.. All Rights Reserved.
+Any vulnerabilities or bugs can be responsibly disclosed by opening an issue.
+
+Copyright 2017 Blocko Ventures. All Rights Reserved.
