@@ -4,10 +4,10 @@ import "zeppelin-solidity/contracts/crowdsale/Crowdsale.sol";
 import "zeppelin-solidity/contracts/crowdsale/CappedCrowdsale.sol";
 import "zeppelin-solidity/contracts/crowdsale/FinalizableCrowdsale.sol";
 import "zeppelin-solidity/contracts/crowdsale/RefundableCrowdsale.sol";
+import "./BLOCPresale.sol";
 import "./BLOCToken.sol";
 
-// RefundableCrowdsale
-contract BLOCCrowdsale is CappedCrowdsale, RefundableCrowdsale {
+contract BLOCCrowdsale is BLOCPresale {
 
     using SafeMath for uint256;
 
@@ -15,39 +15,34 @@ contract BLOCCrowdsale is CappedCrowdsale, RefundableCrowdsale {
     uint256 constant CROWDSALE_SHARE = 90;
     uint256 constant DEV_SHARE = 10;
 
-    uint256 constant TOKEN_PER_ETH_ROUND_1 = 390;
-    uint256 constant TOKEN_PER_ETH_ROUND_2 = 360;
-    uint256 constant TOKEN_PER_ETH_ROUND_3 = 345;
-    uint256 constant TOKEN_PER_ETH_ROUND_4 = 330;
-    uint256 constant TOKEN_PER_ETH_ROUND_5 = 315;
-    uint256 constant TOKEN_PER_ETH_ROUND_6 = 300;
+    uint256 constant TOKEN_PER_ETH_ROUND_1 = 1515;
+    uint256 constant TOKEN_PER_ETH_ROUND_2 = 1365;
+    uint256 constant TOKEN_PER_ETH_ROUND_3 = 1230;
+    uint256 constant TOKEN_PER_ETH_ROUND_4 = 1105;
+    uint256 constant TOKEN_PER_ETH_ROUND_5 = 995;
 
-    uint256 constant ROUND_1 = 390;
-    uint256 constant ROUND_2 = 360 + ROUND_1;
-    uint256 constant ROUND_3 = 345 + ROUND_2;
-    uint256 constant ROUND_4 = 330 + ROUND_3;
-    uint256 constant ROUND_5 = 315 + ROUND_4;
-    uint256 constant ROUND_6 = 300 + ROUND_5;
+    uint256 constant ROUND_1 = 1515;
+    uint256 constant ROUND_2 = 1365 + ROUND_1;
+    uint256 constant ROUND_3 = 1230 + ROUND_2;
+    uint256 constant ROUND_4 = 1105 + ROUND_3;
+    uint256 constant ROUND_5 = 995 + ROUND_4;
 
-    uint256 public tokensSold = 0;
+    address public tokenAddress;
 
     event WalletChange(address wallet);
 
     function BLOCCrowdsale(
         uint256 _startTime,
         uint256 _endTime,
-        address _wallet
+        address _wallet,
+        address _tokenAddress
     )
-        CappedCrowdsale(29500 ether)
-        RefundableCrowdsale(1900 ether)
+        CappedCrowdsale(47500 ether)
+        RefundableCrowdsale(5935 ether)
         Crowdsale(_startTime, _endTime, TOKEN_PER_ETH_ROUND_1, _wallet)
         FinalizableCrowdsale()
     {
-        BLOCToken(token).pause();
-    }
-
-    function createTokenContract() internal returns(MintableToken) {
-        return new BLOCToken();
+        tokenAddress = _tokenAddress;
     }
 
     function getRate() public returns (uint256) {
@@ -76,40 +71,11 @@ contract BLOCCrowdsale is CappedCrowdsale, RefundableCrowdsale {
             curTokenRate = TOKEN_PER_ETH_ROUND_5;
         }
 
-        // Round 6
-        if (totalSupply >= (ROUND_5 * 10 ** 18)) {
-            curTokenRate = TOKEN_PER_ETH_ROUND_6;
-        }
-
         return curTokenRate;
     }
 
-    function unpauseToken() onlyOwner {
-        require(isFinalized);
-        BLOCToken(token).unpause();
-    }
-
-    function buyTokens(address beneficiary) payable {
-
-        require(beneficiary != 0x0);
-        require(validPurchase());
-
-        uint256 weiAmount = msg.value;
-        uint256 updatedWeiRaised = weiRaised.add(weiAmount);
-
-        uint256 rate = getRate();
-
-        // calculate token amount to be created
-        uint256 tokens = weiAmount.mul(rate);
-
-        // update state
-        weiRaised = updatedWeiRaised;
-        tokensSold = tokensSold.add(tokens);
-
-        token.mint(beneficiary, tokens);
-        TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
-
-        forwardFunds();
+    function createTokenContract() internal returns(MintableToken) {
+        return BLOCToken(tokenAddress);
     }
 
     function finalization() internal {
@@ -122,11 +88,5 @@ contract BLOCCrowdsale is CappedCrowdsale, RefundableCrowdsale {
 
         token.finishMinting();
         super.finalization();
-    }
-
-    function setWallet(address _wallet) onlyOwner {
-        require(_wallet != 0x0);
-        wallet = _wallet;
-        WalletChange(_wallet);
     }
 }
