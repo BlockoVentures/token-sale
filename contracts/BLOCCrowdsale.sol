@@ -4,10 +4,9 @@ import "zeppelin-solidity/contracts/crowdsale/Crowdsale.sol";
 import "zeppelin-solidity/contracts/crowdsale/CappedCrowdsale.sol";
 import "zeppelin-solidity/contracts/crowdsale/FinalizableCrowdsale.sol";
 import "zeppelin-solidity/contracts/crowdsale/RefundableCrowdsale.sol";
-import "./BLOCPresale.sol";
 import "./BLOCToken.sol";
 
-contract BLOCCrowdsale is BLOCPresale {
+contract BLOCCrowdsale is CappedCrowdsale, RefundableCrowdsale {
 
     using SafeMath for uint256;
 
@@ -27,25 +26,22 @@ contract BLOCCrowdsale is BLOCPresale {
     uint256 constant ROUND_4 = 1105 + ROUND_3;
     uint256 constant ROUND_5 = 995 + ROUND_4;
 
-    address public tokenAddress;
-
     event WalletChange(address wallet);
 
     function BLOCCrowdsale(
         uint256 _startTime,
         uint256 _endTime,
-        address _wallet,
-        address _tokenAddress
+        address _wallet
     )
         CappedCrowdsale(47500 ether)
         RefundableCrowdsale(5935 ether)
         Crowdsale(_startTime, _endTime, TOKEN_PER_ETH_ROUND_1, _wallet)
-        FinalizableCrowdsale()
     {
-        tokenAddress = _tokenAddress;
+        // TODO: Initialization code
+        // BLOCToken(token).pause();
     }
 
-    function getRate() public returns (uint256) {
+    function getRate() internal returns (uint256) {
 
         // Round 1
         uint256 curTokenRate = TOKEN_PER_ETH_ROUND_1;
@@ -74,8 +70,30 @@ contract BLOCCrowdsale is BLOCPresale {
         return curTokenRate;
     }
 
-    function createTokenContract() internal returns(MintableToken) {
-        return BLOCToken(tokenAddress);
+    function buyTokens(address beneficiary) payable {
+
+        require(beneficiary != 0x0);
+        require(validPurchase());
+
+        uint256 weiAmount = msg.value;
+        uint256 updatedWeiRaised = weiRaised.add(weiAmount);
+
+        uint256 rate = getRate();
+
+        // calculate token amount to be created
+        uint256 tokens = weiAmount.mul(rate);
+
+        // update state
+        weiRaised = updatedWeiRaised;
+
+        token.mint(beneficiary, tokens);
+        TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
+
+        forwardFunds();
+    }
+
+    function setToken(address tokenAddress) {
+        token = BLOCToken(tokenAddress);
     }
 
     function finalization() internal {
@@ -88,5 +106,11 @@ contract BLOCCrowdsale is BLOCPresale {
 
         token.finishMinting();
         super.finalization();
+    }
+
+    function setWallet(address _wallet) onlyOwner {
+        require(_wallet != 0x0);
+        wallet = _wallet;
+        WalletChange(_wallet);
     }
 }

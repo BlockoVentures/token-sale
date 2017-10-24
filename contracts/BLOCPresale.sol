@@ -12,8 +12,6 @@ contract BLOCPresale is CappedCrowdsale, RefundableCrowdsale {
 
     uint256 constant ROUND_1 = 390;
 
-    uint256 public tokensSold = 0;
-
     event WalletChange(address wallet);
 
     function BLOCPresale(
@@ -33,13 +31,8 @@ contract BLOCPresale is CappedCrowdsale, RefundableCrowdsale {
         return new BLOCToken();
     }
 
-    function getRate() public returns (uint256) {
+    function getRate() internal returns (uint256) {
         return ROUND_1;
-    }
-
-    function unpauseToken() onlyOwner {
-        require(isFinalized);
-        BLOCToken(token).unpause();
     }
 
     function buyTokens(address beneficiary) payable {
@@ -57,7 +50,6 @@ contract BLOCPresale is CappedCrowdsale, RefundableCrowdsale {
 
         // update state
         weiRaised = updatedWeiRaised;
-        tokensSold = tokensSold.add(tokens);
 
         token.mint(beneficiary, tokens);
         TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
