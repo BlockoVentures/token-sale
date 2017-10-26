@@ -10,7 +10,7 @@ contract BLOCPresale is CappedCrowdsale, RefundableCrowdsale {
 
     using SafeMath for uint256;
 
-    uint256 constant ROUND_1 = 390;
+    uint256 constant ROUND_1 = 1685;
 
     event WalletChange(address wallet);
 
@@ -61,5 +61,10 @@ contract BLOCPresale is CappedCrowdsale, RefundableCrowdsale {
         require(_wallet != 0x0);
         wallet = _wallet;
         WalletChange(_wallet);
+    }
+
+    function relayToken(address _saleAddress) onlyOwner {
+        require(isFinalized);
+        BLOCToken(token).transferOwnership(_saleAddress);
     }
 }

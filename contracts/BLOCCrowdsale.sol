@@ -37,8 +37,6 @@ contract BLOCCrowdsale is CappedCrowdsale, RefundableCrowdsale {
         RefundableCrowdsale(5935 ether)
         Crowdsale(_startTime, _endTime, TOKEN_PER_ETH_ROUND_1, _wallet)
     {
-        // TODO: Initialization code
-        // BLOCToken(token).pause();
     }
 
     function getRate() internal returns (uint256) {
@@ -92,10 +90,6 @@ contract BLOCCrowdsale is CappedCrowdsale, RefundableCrowdsale {
         forwardFunds();
     }
 
-    function setToken(address tokenAddress) {
-        token = BLOCToken(tokenAddress);
-    }
-
     function finalization() internal {
 
         uint256 totalSupply = token.totalSupply();
@@ -112,5 +106,14 @@ contract BLOCCrowdsale is CappedCrowdsale, RefundableCrowdsale {
         require(_wallet != 0x0);
         wallet = _wallet;
         WalletChange(_wallet);
+    }
+
+    function unpauseToken() onlyOwner {
+        require(isFinalized);
+        BLOCToken(token).unpause();
+    }
+
+    function setToken(address _tokenAddress) onlyOwner {
+        token = BLOCToken(_tokenAddress);
     }
 }
