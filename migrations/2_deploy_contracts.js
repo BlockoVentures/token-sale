@@ -12,11 +12,11 @@ module.exports = function(deployer, network, accounts) {
     
     deployer.deploy(BLOCPresale, presaleStart, presaleEnd, wallet, {
         from: "0x0407546e772f459c190375b59a89fda58ae7ef92",
-        gas: 7000000
+        gas: 31500
     });
 
     deployer.deploy(BLOCCrowdsale, presaleEnd, saleEnd, wallet, {
         from: "0x0407546e772f459c190375b59a89fda58ae7ef92",
-        gas: 7000000
+        gas: 31500
     });
 };
