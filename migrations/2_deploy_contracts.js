@@ -8,6 +8,15 @@ module.exports = function(deployer, network, accounts) {
     const presaleEnd   = 1509043200; // Thursday, October 26, 2017 6:40:00 PM
     const saleEnd      = 1509128400; // Thursday, October 27, 2017 6:20:00 PM
 
-    deployer.deploy(BLOCPresale, presaleStart, presaleEnd, wallet, { gas: 7000000 });
-    deployer.deploy(BLOCCrowdsale, presaleEnd, saleEnd, wallet, { gas: 7000000 });
+    console.log(wallet);
+    
+    deployer.deploy(BLOCPresale, presaleStart, presaleEnd, wallet, {
+        from: "0x0407546e772f459c190375b59a89fda58ae7ef92",
+        gas: 7000000
+    });
+
+    deployer.deploy(BLOCCrowdsale, presaleEnd, saleEnd, wallet, {
+        from: "0x0407546e772f459c190375b59a89fda58ae7ef92",
+        gas: 7000000
+    });
 };
